@@ -86,8 +86,7 @@ function initSqlite() {
     `);
 
     // Check if table is empty, seed initial data
-    const countStmt = sqliteDb.prepare('SELECT COUNT(*) as count FROM books');
-    const { count } = countStmt.get();
+    const { count } = sqliteDb.prepare('SELECT COUNT(*) as count FROM books').get();
     
     if (count === 0) {
         console.log('🌱 Seeding SQLite database with sample books...');
@@ -245,6 +244,15 @@ function seedSqlite() {
     insertMany(seedBooks);
 }
 
+// Cache prepared statements to prevent native C++ destructor GC crashes in Node 20+
+const stmtCache = new Map();
+function getPreparedStatement(sql) {
+    if (!stmtCache.has(sql)) {
+        stmtCache.set(sql, sqliteDb.prepare(sql));
+    }
+    return stmtCache.get(sql);
+}
+
 /**
  * Unified Query interface supporting PostgreSQL syntax ($1, $2) and SQLite translation
  */
@@ -267,7 +275,7 @@ async function query(sql, params = []) {
         const trimmed = sqliteSql.trim().toUpperCase();
 
         if (trimmed.startsWith('SELECT')) {
-            const stmt = sqliteDb.prepare(sqliteSql);
+            const stmt = getPreparedStatement(sqliteSql);
             const rows = stmt.all(...params);
             // Ensure boolean conversion for is_favorite
             const formattedRows = rows.map(r => ({
@@ -276,11 +284,11 @@ async function query(sql, params = []) {
             }));
             return { rows: formattedRows, rowCount: formattedRows.length };
         } else if (trimmed.startsWith('INSERT')) {
-            const stmt = sqliteDb.prepare(sqliteSql);
+            const stmt = getPreparedStatement(sqliteSql);
             const info = stmt.run(...params);
             return { rows: [{ id: info.lastInsertRowid }], rowCount: info.changes };
         } else {
-            const stmt = sqliteDb.prepare(sqliteSql);
+            const stmt = getPreparedStatement(sqliteSql);
             const info = stmt.run(...params);
             return { rows: [], rowCount: info.changes };
         }
@@ -288,6 +296,7 @@ async function query(sql, params = []) {
         throw new Error('Database not initialized');
     }
 }
+
 
 module.exports = {
     initDb,
