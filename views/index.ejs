@@ -1,0 +1,212 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+    <!-- Feedback Toast Messages -->
+    <% if (typeof messages !== 'undefined' && messages.length > 0) { %>
+        <div class="toast-container">
+            <% messages.forEach(msg => { %>
+                <div class="toast">
+                    <span style="font-size: 1.3rem;">✨</span>
+                    <div><%= msg %></div>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+
+    <!-- Header Banner -->
+    <div class="dashboard-header">
+        <div class="header-title">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem;">
+                <h1>My Book Collection</h1>
+                <span class="status-badge" style="position: static; background: rgba(99, 102, 241, 0.2); color: var(--accent-indigo); border: 1px solid rgba(99, 102, 241, 0.4);">
+                    <%= isPostgres ? 'PostgreSQL Active 🐘' : 'SQLite Local Mode 📦' %>
+                </span>
+            </div>
+            <p>Manage, track, and enrich your library collection with PostgreSQL and Open Library API.</p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="/books/add" class="btn btn-primary">
+                <span>+</span> Add Custom Book
+            </a>
+            <button id="openSearchModalBtn" class="btn btn-secondary">
+                <span>🌐</span> Import from Open Library
+            </button>
+        </div>
+    </div>
+
+    <!-- Metrics Cards Grid -->
+    <section class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon gold">📚</div>
+            <div class="metric-info">
+                <div class="val"><%= stats.total_books || 0 %></div>
+                <div class="lbl">Total Library</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon emerald">✅</div>
+            <div class="metric-info">
+                <div class="val"><%= stats.read_count || 0 %></div>
+                <div class="lbl">Books Read</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon indigo">📖</div>
+            <div class="metric-info">
+                <div class="val"><%= stats.reading_count || 0 %></div>
+                <div class="lbl">Currently Reading</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon cyan">🔖</div>
+            <div class="metric-info">
+                <div class="val"><%= stats.want_count || 0 %></div>
+                <div class="lbl">Want to Read</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon rose">⭐</div>
+            <div class="metric-info">
+                <div class="val"><%= stats.avg_rating || 0 %></div>
+                <div class="lbl">Average Rating</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon gold">📄</div>
+            <div class="metric-info">
+                <div class="val"><%= Number(stats.total_pages_read || 0).toLocaleString() %></div>
+                <div class="lbl">Pages Read</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Controls & Filters Bar -->
+    <section class="controls-bar">
+        <form action="/" method="GET" style="display: flex; gap: 1rem; flex: 1; flex-wrap: wrap; align-items: center;">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="search" value="<%= search %>" placeholder="Search by title, author, or ISBN...">
+            </div>
+
+            <div class="filter-group">
+                <select name="status" class="select-control" onchange="this.form.submit()">
+                    <option value="All" <%= currentStatus === 'All' ? 'selected' : '' %>>All Statuses</option>
+                    <option value="Read" <%= currentStatus === 'Read' ? 'selected' : '' %>>Read</option>
+                    <option value="Reading" <%= currentStatus === 'Reading' ? 'selected' : '' %>>Reading</option>
+                    <option value="Want to Read" <%= currentStatus === 'Want to Read' ? 'selected' : '' %>>Want to Read</option>
+                    <option value="DNF" <%= currentStatus === 'DNF' ? 'selected' : '' %>>Did Not Finish</option>
+                </select>
+
+                <select name="genre" class="select-control" onchange="this.form.submit()">
+                    <option value="All" <%= currentGenre === 'All' ? 'selected' : '' %>>All Genres</option>
+                    <% genres.forEach(g => { %>
+                        <option value="<%= g %>" <%= currentGenre === g ? 'selected' : '' %>><%= g %></option>
+                    <% }) %>
+                </select>
+
+                <select name="sort" class="select-control" onchange="this.form.submit()">
+                    <option value="created_at" <%= sort === 'created_at' ? 'selected' : '' %>>Date Added</option>
+                    <option value="title" <%= sort === 'title' ? 'selected' : '' %>>Title (A-Z)</option>
+                    <option value="author" <%= sort === 'author' ? 'selected' : '' %>>Author Name</option>
+                    <option value="rating" <%= sort === 'rating' ? 'selected' : '' %>>Rating (High-Low)</option>
+                    <option value="page_count" <%= sort === 'page_count' ? 'selected' : '' %>>Page Count</option>
+                </select>
+
+                <% if (search || currentStatus !== 'All' || currentGenre !== 'All') { %>
+                    <a href="/" class="btn btn-secondary" style="padding: 0.65rem 0.85rem; font-size: 0.85rem;" title="Clear Filters">
+                        ✕ Clear Filters
+                    </a>
+                <% } %>
+            </div>
+        </form>
+
+        <div class="view-toggle">
+            <button id="viewGridBtn" class="view-btn <%= viewMode !== 'list' ? 'active' : '' %>" title="Grid View">
+                ⊞ Grid
+            </button>
+            <button id="viewListBtn" class="view-btn <%= viewMode === 'list' ? 'active' : '' %>" title="List View">
+                ☰ List
+            </button>
+        </div>
+    </section>
+
+    <!-- Books Display Section -->
+    <% if (books.length === 0) { %>
+        <div class="empty-state">
+            <div class="empty-icon">📖</div>
+            <h3 class="serif-font" style="font-size: 1.5rem; margin-bottom: 0.5rem;">No books match your criteria</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Try adjusting your search query or filters, or add a new book to your library.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="/books/add" class="btn btn-primary">+ Add New Book</a>
+                <button id="openSearchModalBtn" class="btn btn-secondary">Search Open Library API</button>
+            </div>
+        </div>
+    <% } else { %>
+        <!-- Grid View -->
+        <section id="booksGridView" class="books-grid" style="display: <%= viewMode !== 'list' ? 'grid' : 'none' %>;">
+            <% books.forEach(book => { %>
+                <%- include('partials/book-card', { book: book }) %>
+            <% }) %>
+        </section>
+
+        <!-- List View Table -->
+        <section id="booksListView" style="display: <%= viewMode === 'list' ? 'block' : 'none' %>;">
+            <table class="books-list-table">
+                <thead>
+                    <tr>
+                        <th>Cover</th>
+                        <th>Title & Author</th>
+                        <th>Genre</th>
+                        <th>Status</th>
+                        <th>Rating</th>
+                        <th>Pages</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% books.forEach(book => { %>
+                        <tr class="table-row">
+                            <td style="width: 65px;">
+                                <% if (book.cover_url) { %>
+                                    <img src="<%= book.cover_url %>" alt="<%= book.title %>" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;" onError="this.onerror=null;this.src='https://via.placeholder.com/45x60?text=No+Cover';">
+                                <% } else { %>
+                                    <div style="width: 45px; height: 60px; background: var(--bg-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">📚</div>
+                                <% } %>
+                            </td>
+                            <td>
+                                <a href="/books/<%= book.id %>" style="font-weight: 700; color: var(--text-primary);"><%= book.title %></a>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">by <%= book.author %></div>
+                                <% if (book.isbn) { %><div style="font-size: 0.75rem; color: var(--text-muted);">ISBN: <%= book.isbn %></div><% } %>
+                            </td>
+                            <td><span class="genre-tag"><%= book.genre || 'General' %></span></td>
+                            <td><span class="status-badge <%= (book.status || 'Want to Read').replace(/\s+/g, '-') %>" style="position: static;"><%= book.status %></span></td>
+                            <td>
+                                <div class="star-rating" style="font-size: 0.85rem;">
+                                    <% for(let i = 1; i <= 5; i++) { %>
+                                        <span class="<%= i <= (book.rating || 0) ? 'star-filled' : 'star-empty' %>">★</span>
+                                    <% } %>
+                                </div>
+                            </td>
+                            <td style="font-size: 0.85rem; color: var(--text-muted);"><%= book.page_count || 0 %></td>
+                            <td>
+                                <div style="display: flex; gap: 0.4rem;">
+                                    <a href="/books/<%= book.id %>" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.78rem;">Details</a>
+                                    <a href="/books/<%= book.id %>/edit" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.78rem;">Edit</a>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

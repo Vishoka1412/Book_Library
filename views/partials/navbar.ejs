@@ -1,0 +1,27 @@
+<header class="navbar">
+    <div class="container nav-container">
+        <a href="/" class="brand-logo">
+            <div class="brand-icon">📚</div>
+            <span>LuminaLib</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/" class="nav-link">Dashboard</a></li>
+            <li><a href="/books/open-library" class="nav-link">Explore Open Library</a></li>
+            <li><a href="/api/export?format=json" class="nav-link" title="Export collection as JSON">Export JSON</a></li>
+            <li><a href="/api/export?format=csv" class="nav-link" title="Export collection as CSV">Export CSV</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <button id="openSearchModalBtn" class="btn btn-secondary" style="gap: 0.4rem;">
+                <span>🔍</span> Search Open Library API
+            </button>
+            <a href="/books/add" class="btn btn-primary">
+                <span>+</span> Add Book
+            </a>
+            <button id="themeToggleBtn" class="btn-icon-only" title="Toggle Theme">
+                ☀️
+            </button>
+        </div>
+    </div>
+</header>

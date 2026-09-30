@@ -1,0 +1,133 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+    <div class="form-container">
+        <div class="form-header">
+            <h2 class="serif-font"><%= isEdit ? 'Edit Book Record' : 'Add New Book to Library' %></h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                <%= isEdit ? 'Update details, reviews, or status for this book.' : 'Fill in book details manually or pre-fill using Open Library API.' %>
+            </p>
+        </div>
+
+        <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+            <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem; color: #fff;">
+                <strong style="color: var(--accent-rose); font-weight: 700;">Please fix the following issues:</strong>
+                <ul style="margin-left: 1.25rem; margin-top: 0.4rem; font-size: 0.9rem;">
+                    <% errors.forEach(err => { %>
+                        <li><%= err %></li>
+                    <% }) %>
+                </ul>
+            </div>
+        <% } %>
+
+        <form action="<%= isEdit ? '/books/' + book.id + '?_method=PUT' : '/books' %>" method="POST">
+            <div class="form-grid">
+                <!-- Title -->
+                <div class="form-group full-width">
+                    <label for="title">Book Title *</label>
+                    <input type="text" id="title" name="title" class="form-control" value="<%= book.title || '' %>" required placeholder="e.g. Dune, Atomic Habits...">
+                </div>
+
+                <!-- Author -->
+                <div class="form-group">
+                    <label for="author">Author Name *</label>
+                    <input type="text" id="author" name="author" class="form-control" value="<%= book.author || '' %>" required placeholder="e.g. Frank Herbert">
+                </div>
+
+                <!-- ISBN -->
+                <div class="form-group">
+                    <label for="isbn">ISBN / ISBN-13</label>
+                    <input type="text" id="isbn" name="isbn" class="form-control" value="<%= book.isbn || '' %>" placeholder="e.g. 9780441172719">
+                </div>
+
+                <!-- Genre -->
+                <div class="form-group">
+                    <label for="genre">Genre / Category</label>
+                    <input type="text" id="genre" name="genre" class="form-control" value="<%= book.genre || 'General' %>" placeholder="e.g. Science Fiction, Tech, Self-Help">
+                </div>
+
+                <!-- Status -->
+                <div class="form-group">
+                    <label for="status">Reading Status</label>
+                    <select id="status" name="status" class="form-control select-control" style="width: 100%;">
+                        <option value="Want to Read" <%= book.status === 'Want to Read' ? 'selected' : '' %>>Want to Read</option>
+                        <option value="Reading" <%= book.status === 'Reading' ? 'selected' : '' %>>Currently Reading</option>
+                        <option value="Read" <%= book.status === 'Read' ? 'selected' : '' %>>Read / Completed</option>
+                        <option value="DNF" <%= book.status === 'DNF' ? 'selected' : '' %>>Did Not Finish (DNF)</option>
+                    </select>
+                </div>
+
+                <!-- Star Rating Picker -->
+                <div class="form-group">
+                    <label>Rating (1 - 5 Stars)</label>
+                    <input type="hidden" name="rating" id="ratingInput" value="<%= book.rating || 0 %>">
+                    <div class="star-rating-picker" id="starRatingPicker">
+                        <span class="star" data-val="1">☆</span>
+                        <span class="star" data-val="2">☆</span>
+                        <span class="star" data-val="3">☆</span>
+                        <span class="star" data-val="4">☆</span>
+                        <span class="star" data-val="5">☆</span>
+                    </div>
+                </div>
+
+                <!-- Page Count -->
+                <div class="form-group">
+                    <label for="page_count">Total Page Count</label>
+                    <input type="number" id="page_count" name="page_count" class="form-control" value="<%= book.page_count || 0 %>" min="0" placeholder="e.g. 320">
+                </div>
+
+                <!-- Cover Image URL -->
+                <div class="form-group full-width">
+                    <label for="cover_url">Cover Image URL</label>
+                    <input type="url" id="cover_url" name="cover_url" class="form-control" value="<%= book.cover_url || '' %>" placeholder="https://covers.openlibrary.org/b/isbn/...-L.jpg">
+                    <small style="color: var(--text-muted); font-size: 0.78rem;">Leave empty to auto-fetch from Open Library if ISBN is provided.</small>
+                </div>
+
+                <!-- Date Read -->
+                <div class="form-group">
+                    <label for="date_read">Date Completed</label>
+                    <input type="date" id="date_read" name="date_read" class="form-control" value="<%= book.date_read || '' %>">
+                </div>
+
+                <!-- Favorite Checkbox -->
+                <div class="form-group" style="justify-content: center;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-top: 1.5rem;">
+                        <input type="checkbox" name="is_favorite" <%= book.is_favorite ? 'checked' : '' %> style="width: 18px; height: 18px; accent-color: var(--accent-gold);">
+                        <span style="font-weight: 600; color: var(--accent-gold);">Mark as Favorite ★</span>
+                    </label>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group full-width">
+                    <label for="description">Description / Synopsis</label>
+                    <textarea id="description" name="description" class="form-control" placeholder="Book overview, plot summary, or back cover blurb..."><%= book.description || '' %></textarea>
+                </div>
+
+                <!-- Personal Review -->
+                <div class="form-group full-width">
+                    <label for="review">Personal Review</label>
+                    <textarea id="review" name="review" class="form-control" placeholder="What did you think of this book? Key takeaways, criticism, or impressions..."><%= book.review || '' %></textarea>
+                </div>
+
+                <!-- Personal Notes -->
+                <div class="form-group full-width">
+                    <label for="notes">Reading Notes & Quotes</label>
+                    <textarea id="notes" name="notes" class="form-control" placeholder="Favorite quotes, chapter notes, key highlights..."><%= book.notes || '' %></textarea>
+                </div>
+
+                <!-- Hidden Open Library Key -->
+                <input type="hidden" name="open_library_key" value="<%= book.open_library_key || '' %>">
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <a href="<%= isEdit ? '/books/' + book.id : '/' %>" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+                    <%= isEdit ? 'Save Changes' : 'Add to Library' %>
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

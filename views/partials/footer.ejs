@@ -1,0 +1,38 @@
+    <footer class="footer">
+        <div class="container">
+            <p>© <%= new Date().getFullYear() %> <strong>LuminaLib</strong> — Full-stack Express.js, PostgreSQL, EJS & Axios Open Library App</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">
+                Powered by Node.js <%= process.version %> • Express.js • Open Library REST API
+            </p>
+        </div>
+    </footer>
+
+    <!-- Open Library Live Search Modal -->
+    <div id="openLibraryModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="serif-font" style="font-size: 1.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                    🌐 Search Open Library API
+                </h3>
+                <button id="closeModalBtn" class="btn-icon-only" style="padding: 0.3rem 0.6rem; border: none; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box" style="margin-bottom: 1.25rem;">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="modalSearchInput" placeholder="Search by book title, author name, or ISBN..." autocomplete="off">
+                    <span id="searchSpinner" style="display: none; position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--accent-gold);">⏳</span>
+                </div>
+                <div id="modalSearchResults">
+                    <p class="text-muted" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        Type a title or author above to dynamically search millions of books via Open Library API...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/main.js"></script>
+    <script src="/js/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+    <div style="padding: 2.5rem 0 1rem; text-align: center; max-width: 800px; margin: 0 auto;">
+        <h1 class="serif-font" style="font-size: 2.5rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--text-primary), var(--accent-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Explore Open Library API
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.05rem;">
+            Search millions of public domain and published books dynamically powered by Axios and the Open Library API. Import any title straight into your collection with one click.
+        </p>
+
+        <div class="search-box" style="margin-top: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="pageSearchInput" value="<%= query %>" placeholder="Type a book title, author, or ISBN (e.g., 'Stephen King', 'Neuromancer')..." style="padding-top: 0.85rem; padding-bottom: 0.85rem; font-size: 1rem;">
+        </div>
+    </div>
+
+    <div id="pageSearchResults" style="margin: 2rem 0 4rem;">
+        <p style="text-align: center; color: var(--text-muted); padding: 3rem;">
+            Type a query in the search bar above to fetch live data from Open Library...
+        </p>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('pageSearchInput');
+    const container = document.getElementById('pageSearchResults');
+    if (!input || !container) return;
+
+    let timer;
+
+    if (input.value.trim().length >= 2) {
+        doSearch(input.value.trim());
+    }
+
+    input.addEventListener('input', (e) => {
+        clearTimeout(timer);
+        const q = e.target.value.trim();
+        if (q.length < 2) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 3rem;">Type a query in the search bar above...</p>';
+            return;
+        }
+
+        container.innerHTML = '<div style="text-align: center; padding: 3rem; font-size: 1.2rem; color: var(--accent-gold);">⏳ Querying Open Library API via Axios...</div>';
+
+        timer = setTimeout(() => {
+            doSearch(q);
+        }, 400);
+    });
+
+    async function doSearch(query) {
+        try {
+            const res = await fetch(`/api/open-library/search?q=${encodeURIComponent(query)}&limit=20`);
+            const data = await res.json();
+
+            if (!data.success || !data.results || data.results.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No results found for "${escapeHtml(query)}"</h3></div>`;
+                return;
+            }
+
+            let html = '<div class="books-grid">';
+            data.results.forEach(book => {
+                const cover = book.cover_url || 'https://via.placeholder.com/200x300?text=No+Cover';
+                const bookJson = JSON.stringify({
+                    title: book.title,
+                    author: book.author,
+                    isbn: book.isbn,
+                    genre: book.genre,
+                    cover_url: book.cover_url,
+                    page_count: book.page_count,
+                    key: book.key
+                }).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+                html += `
+                    <div class="book-card">
+                        <div class="book-cover-wrapper" style="height: 280px;">
+                            <img src="${cover}" alt="${escapeHtml(book.title)}" class="book-cover" onError="this.onerror=null;this.src='https://via.placeholder.com/200x300?text=No+Cover';">
+                        </div>
+                        <div class="book-card-body">
+                            <div>
+                                <span class="genre-tag">${escapeHtml(book.genre || 'General')}</span>
+                                <h3 class="book-title" title="${escapeHtml(book.title)}">${escapeHtml(book.title)}</h3>
+                                <p class="book-author">by ${escapeHtml(book.author)}</p>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                                    <span>📅 ${book.publish_year !== 'N/A' ? book.publish_year : 'N/A'}</span> • 
+                                    <span>📖 ${book.page_count || 0} pages</span>
+                                </div>
+                            </div>
+                            <div class="card-footer" style="padding-top: 0.75rem;">
+                                <button onclick="quickAddBook(this, '${bookJson}')" class="btn btn-primary" style="width: 100%; font-size: 0.82rem;">
+                                    + Add to My Library
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `<p style="color: var(--accent-rose); text-align: center;">Error fetching API: ${err.message}</p>`;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+});
+</script>
+
+<%- include('partials/footer') %>

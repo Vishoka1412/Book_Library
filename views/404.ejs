@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="display: flex; align-items: center; justify-content: center; min-height: 60vh;">
+    <div style="text-align: center; max-width: 500px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 3rem 2rem; backdrop-filter: blur(12px);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📑</div>
+        <h1 class="serif-font" style="font-size: 2.2rem; color: var(--accent-gold); margin-bottom: 0.5rem;"><%= title %></h1>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+            <%= message || 'The page or book record you are looking for could not be found.' %>
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/" class="btn btn-primary">Return to Library Dashboard</a>
+            <button id="openSearchModalBtn" class="btn btn-secondary">Search Open Library</button>
+        </div>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,147 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+    <div style="margin-top: 1.5rem;">
+        <a href="/" class="btn btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <div class="detail-layout">
+        <!-- Sidebar Cover Image -->
+        <aside class="detail-cover-sidebar">
+            <div style="position: relative;">
+                <% if (book.cover_url) { %>
+                    <img src="<%= book.cover_url %>" alt="<%= book.title %>" class="detail-cover-img" onError="this.onerror=null;this.src='https://via.placeholder.com/320x480?text=No+Cover+Available';">
+                <% } else { %>
+                    <div style="width: 100%; height: 440px; background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary)); border: 1px solid var(--border-color); border-radius: var(--radius-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                        <span style="font-size: 4rem; margin-bottom: 1rem;">📚</span>
+                        <h3 class="serif-font" style="color: var(--accent-gold);"><%= book.title %></h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;"><%= book.author %></p>
+                    </div>
+                <% } %>
+
+                <form action="/books/<%= book.id %>/favorite" method="POST" style="position: absolute; top: 15px; right: 15px;">
+                    <button type="submit" class="fav-btn <%= book.is_favorite ? 'active' : '' %>" style="width: 42px; height: 42px; font-size: 1.2rem;">
+                        ★
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <a href="/books/<%= book.id %>/edit" class="btn btn-primary" style="width: 100%;">
+                    ✏️ Edit Book Details
+                </a>
+
+                <form action="/books/<%= book.id %>/enrich" method="POST" style="width: 100%;">
+                    <button type="submit" class="btn btn-secondary" style="width: 100%; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Fetch extra info and missing covers from Open Library API">
+                        🔄 Refresh from Open Library API
+                    </button>
+                </form>
+
+                <form action="/books/<%= book.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Are you sure you want to remove this book from your library?');">
+                    <button type="submit" class="btn btn-danger" style="width: 100%;">
+                        🗑️ Delete Book
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <article class="detail-content">
+            <div class="detail-meta-tags">
+                <span class="status-badge <%= (book.status || 'Want to Read').replace(/\s+/g, '-') %>" style="position: static; font-size: 0.85rem;">
+                    <%= book.status %>
+                </span>
+                <span class="genre-tag" style="font-size: 0.85rem;"><%= book.genre || 'General' %></span>
+                <% if (book.isbn) { %>
+                    <span style="font-size: 0.82rem; color: var(--text-muted);">ISBN: <%= book.isbn %></span>
+                <% } %>
+            </div>
+
+            <h1 class="detail-title"><%= book.title %></h1>
+            <h2 class="detail-author">by <%= book.author %></h2>
+
+            <!-- Star Rating Display -->
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div class="star-rating" style="font-size: 1.4rem;">
+                    <% for(let i = 1; i <= 5; i++) { %>
+                        <span class="<%= i <= (book.rating || 0) ? 'star-filled' : 'star-empty' %>">★</span>
+                    <% } %>
+                </div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--accent-gold);">
+                    <%= book.rating > 0 ? book.rating + ' / 5 Stars' : 'Not Rated Yet' %>
+                </div>
+                <% if (book.formatted_date_read) { %>
+                    <div style="margin-left: auto; font-size: 0.85rem; color: var(--text-muted);">
+                        Completed: <strong><%= book.formatted_date_read %></strong>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Book Specifications Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div style="background: var(--bg-secondary); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Page Count</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);"><%= book.page_count || 0 %> Pages</div>
+                </div>
+
+                <div style="background: var(--bg-secondary); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Favorite Status</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: <%= book.is_favorite ? 'var(--accent-rose)' : 'var(--text-secondary)' %>;">
+                        <%= book.is_favorite ? '❤️ Favorite' : 'Standard' %>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-secondary); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Open Library Link</div>
+                    <div style="font-size: 0.95rem; font-weight: 600; margin-top: 0.2rem;">
+                        <% if (book.open_library_key) { %>
+                            <a href="https://openlibrary.org<%= book.open_library_key %>" target="_blank" style="color: var(--accent-cyan); text-decoration: underline;">Open Library ↗</a>
+                        <% } else if (book.isbn) { %>
+                            <a href="https://openlibrary.org/isbn/<%= book.isbn %>" target="_blank" style="color: var(--accent-cyan); text-decoration: underline;">View on OL ↗</a>
+                        <% } else { %>
+                            <span style="color: var(--text-muted);">Not Linked</span>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="detail-section">
+                <h3>📖 Description & Synopsis</h3>
+                <p style="color: var(--text-secondary); line-height: 1.8; font-size: 1.05rem; white-space: pre-line;">
+                    <%= book.description || 'No description added for this book yet. Use the "Refresh from Open Library API" button to automatically retrieve a synopsis.' %>
+                </p>
+            </div>
+
+            <!-- Personal Review -->
+            <div class="detail-section">
+                <h3>✍️ My Personal Review</h3>
+                <% if (book.review) { %>
+                    <div style="background: rgba(245, 158, 11, 0.05); border-left: 4px solid var(--accent-gold); padding: 1.25rem 1.5rem; border-radius: 0 var(--radius-md) var(--radius-md) 0; font-style: italic; font-size: 1.05rem; line-height: 1.7;">
+                        "<%= book.review %>"
+                    </div>
+                <% } else { %>
+                    <p style="color: var(--text-muted); font-style: italic;">You haven't written a review for this book yet. <a href="/books/<%= book.id %>/edit" style="color: var(--accent-gold); text-decoration: underline;">Add a review</a></p>
+                <% } %>
+            </div>
+
+            <!-- Reading Notes -->
+            <div class="detail-section">
+                <h3>💡 Reading Notes & Takeaways</h3>
+                <% if (book.notes) { %>
+                    <div style="background: var(--bg-secondary); padding: 1.25rem 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.98rem; line-height: 1.7; white-space: pre-line;">
+                        <%= book.notes %>
+                    </div>
+                <% } else { %>
+                    <p style="color: var(--text-muted); font-style: italic;">No personal notes recorded.</p>
+                <% } %>
+            </div>
+        </article>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

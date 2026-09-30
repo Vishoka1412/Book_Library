@@ -1,0 +1,33 @@
+{
+  "name": "book-library-app",
+  "version": "1.0.0",
+  "description": "Full-stack Book Library Web Application using Node.js, Express.js, PostgreSQL, EJS, and Axios Open Library API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "postgresql",
+    "ejs",
+    "axios",
+    "openlibrary",
+    "crud",
+    "book-library"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.1.0",
+    "better-sqlite3": "^11.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-validator": "^7.2.1",
+    "method-override": "^3.0.0",
+    "pg": "^8.13.1"
+  }
+}

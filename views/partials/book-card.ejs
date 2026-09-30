@@ -1,0 +1,46 @@
+<div class="book-card" id="book-card-<%= book.id %>">
+    <div class="book-cover-wrapper">
+        <span class="status-badge <%= (book.status || 'Want to Read').replace(/\s+/g, '-') %>">
+            <%= book.status %>
+        </span>
+
+        <form action="/books/<%= book.id %>/favorite" method="POST" style="display: inline;">
+            <button type="submit" class="fav-btn <%= book.is_favorite ? 'active' : '' %>" title="<%= book.is_favorite ? 'Remove from Favorites' : 'Add to Favorites' %>">
+                ★
+            </button>
+        </form>
+
+        <% if (book.cover_url) { %>
+            <img src="<%= book.cover_url %>" alt="<%= book.title %>" class="book-cover" onError="this.onerror=null; this.parentElement.innerHTML='<div class=\'cover-fallback\'><div class=\'fallback-title\'><%= book.title.replace(/'/g, "\\'") %></div><div class=\'fallback-author\'><%= book.author.replace(/'/g, "\\'") %></div></div>';">
+        <% } else { %>
+            <div class="cover-fallback">
+                <div class="fallback-title"><%= book.title %></div>
+                <div class="fallback-author"><%= book.author %></div>
+            </div>
+        <% } %>
+    </div>
+
+    <div class="book-card-body">
+        <div>
+            <span class="genre-tag"><%= book.genre || 'General' %></span>
+            <a href="/books/<%= book.id %>">
+                <h3 class="book-title" title="<%= book.title %>"><%= book.title %></h3>
+            </a>
+            <p class="book-author">by <%= book.author %></p>
+
+            <div class="star-rating">
+                <% for(let i = 1; i <= 5; i++) { %>
+                    <span class="<%= i <= (book.rating || 0) ? 'star-filled' : 'star-empty' %>">★</span>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <span>📖 <%= book.page_count || 0 %> pages</span>
+            <div style="display: flex; gap: 0.4rem;">
+                <a href="/books/<%= book.id %>/edit" class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.78rem;">Edit</a>
+                <a href="/books/<%= book.id %>" class="btn btn-primary" style="padding: 0.25rem 0.6rem; font-size: 0.78rem;">View</a>
+            </div>
+        </div>
+    </div>
+</div>
